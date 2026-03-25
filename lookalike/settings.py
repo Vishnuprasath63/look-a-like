@@ -56,7 +56,7 @@ MIDDLEWARE = [
 ]
 
 # CSRF settings for production
-CSRF_TRUSTED_ORIGINS = ['.up.railway.app'] if not DEBUG else []
+CSRF_TRUSTED_ORIGINS = ['https://.up.railway.app', 'http://.up.railway.app'] if not DEBUG else []
 
 ROOT_URLCONF = 'lookalike.urls'
 
