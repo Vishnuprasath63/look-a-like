@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Match History{% endblock %}
+
+{% block content %}
+<div class="history-page">
+    <div class="history-header">
+        <h1 class="page-title">Your <span class="gradient-text">Match History</span></h1>
+        <p class="page-subtitle">All your celebrity look-alike results in one place</p>
+    </div>
+
+    {% if matches %}
+    <div class="history-grid">
+        {% for match in matches %}
+        <a href="{% url 'results' match_id=match.id %}" class="history-card glass-card" id="history-{{ match.id }}">
+            <div class="history-card-images">
+                <div class="history-user-thumb">
+                    <img src="{{ match.uploaded_image.url }}" alt="Your photo">
+                </div>
+                <div class="history-arrow">→</div>
+                <div class="history-celeb-info">
+                    <span class="history-celeb-name">{{ match.top_match_name }}</span>
+                </div>
+            </div>
+            <div class="history-card-meta">
+                <div class="history-score">
+                    <span class="history-score-number">{{ match.top_match_score|floatformat:1 }}%</span>
+                    <span class="history-score-label">Match</span>
+                </div>
+                <div class="history-date">
+                    {{ match.created_at|date:"M d, Y" }}
+                    <span class="history-time">{{ match.created_at|time:"h:i A" }}</span>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="empty-state glass-card">
+        <div class="empty-icon">📸</div>
+        <h2 class="empty-title">No matches yet</h2>
+        <p class="empty-desc">Upload your first photo to find your celebrity look-alike!</p>
+        <a href="{% url 'upload' %}" class="btn btn-primary btn-lg" id="first-match-btn">
+            Find Your Match
+        </a>
+    </div>
+    {% endif %}
+
+    {% if matches %}
+    <div class="history-footer-actions">
+        <a href="{% url 'upload' %}" class="btn btn-primary btn-lg" id="new-match-btn">
+            📸 New Match
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

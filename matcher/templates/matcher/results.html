@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Your Match Results{% endblock %}
+
+{% block content %}
+<div class="results-page">
+    <div class="results-header">
+        <h1 class="page-title">Your Celebrity <span class="gradient-text">Look-Alike</span></h1>
+        <p class="page-subtitle">Here's who the AI thinks you resemble most</p>
+    </div>
+
+    {% if top_result %}
+    <!-- Top Match Spotlight -->
+    <div class="top-match-card glass-card" id="top-match">
+        <div class="match-vs">
+            <div class="match-photo-container">
+                <div class="match-photo-label">You</div>
+                <div class="match-photo user-photo">
+                    <img src="{{ match_result.uploaded_image.url }}" alt="Your photo" id="user-photo">
+                </div>
+            </div>
+
+            <div class="match-score-container">
+                <div class="score-circle" id="score-circle">
+                    <svg viewBox="0 0 120 120" class="score-svg">
+                        <circle cx="60" cy="60" r="54" class="score-bg" />
+                        <circle cx="60" cy="60" r="54" class="score-progress"
+                                stroke-dasharray="339.292"
+                                stroke-dashoffset="339.292"
+                                data-score="{{ top_result.similarity }}" />
+                    </svg>
+                    <div class="score-text">
+                        <span class="score-number" data-target="{{ top_result.similarity }}">0</span>
+                        <span class="score-pct">%</span>
+                    </div>
+                </div>
+                <div class="score-label">Match Score</div>
+            </div>
+
+            <div class="match-photo-container">
+                <div class="match-photo-label">{{ top_result.name }}</div>
+                <div class="match-photo celeb-photo">
+                    <img src="{{ top_result.image_url }}" alt="{{ top_result.name }}" id="celeb-photo">
+                </div>
+                <div class="match-category-badge">{{ top_result.category }}</div>
+            </div>
+        </div>
+
+        <div class="top-match-info">
+            <h2 class="top-match-name">🌟 You look like <strong>{{ top_result.name }}</strong>!</h2>
+            {% if top_result.description %}
+            <p class="top-match-desc">{{ top_result.description }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Other Matches -->
+    {% if other_results %}
+    <div class="other-matches-section">
+        <h2 class="section-title-sm">Other Matches</h2>
+        <div class="matches-grid">
+            {% for result in other_results %}
+            <div class="match-card glass-card" id="match-card-{{ forloop.counter }}">
+                <div class="match-card-rank">#{{ forloop.counter|add:1 }}</div>
+                <div class="match-card-photo">
+                    <img src="{{ result.image_url }}" alt="{{ result.name }}">
+                </div>
+                <div class="match-card-info">
+                    <h3 class="match-card-name">{{ result.name }}</h3>
+                    <span class="match-card-category">{{ result.category }}</span>
+                </div>
+                <div class="match-card-score">
+                    <div class="mini-progress-bar">
+                        <div class="mini-progress-fill" data-width="{{ result.similarity }}"></div>
+                    </div>
+                    <span class="match-card-pct" data-target="{{ result.similarity }}">{{ result.similarity }}%</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Actions -->
+    <div class="results-actions">
+        <a href="{% url 'upload' %}" class="btn btn-primary btn-lg" id="try-again-btn">
+            <span>📸 Try Another Photo</span>
+        </a>
+        <a href="{% url 'history' %}" class="btn btn-ghost btn-lg" id="view-history-btn">
+            📊 View History
+        </a>
+    </div>
+
+    {% else %}
+    <div class="no-results glass-card">
+        <div class="no-results-icon">😔</div>
+        <h2>No matches found</h2>
+        <p>We couldn't find enough facial data. Try uploading a clearer photo.</p>
+        <a href="{% url 'upload' %}" class="btn btn-primary">Try Again</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate score circle
+    setTimeout(function() {
+        const progressCircle = document.querySelector('.score-progress');
+        if (progressCircle) {
+            const score = parseFloat(progressCircle.dataset.score);
+            const circumference = 339.292;
+            const offset = circumference - (score / 100) * circumference;
+            progressCircle.style.strokeDashoffset = offset;
+        }
+
+        // Animate score number
+        const scoreNumber = document.querySelector('.score-number');
+        if (scoreNumber) {
+            const target = parseFloat(scoreNumber.dataset.target);
+            animateNumber(scoreNumber, 0, target, 1500);
+        }
+
+        // Animate mini progress bars
+        document.querySelectorAll('.mini-progress-fill').forEach(function(bar) {
+            const width = bar.dataset.width;
+            bar.style.width = width + '%';
+        });
+    }, 300);
+
+    function animateNumber(element, start, end, duration) {
+        const startTime = performance.now();
+        function update(currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            const current = start + (end - start) * eased;
+            element.textContent = current.toFixed(1);
+            if (progress < 1) {
+                requestAnimationFrame(update);
+            }
+        }
+        requestAnimationFrame(update);
+    }
+});
+</script>
+{% endblock %}

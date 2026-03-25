@@ -1,0 +1,8 @@
+django>=5.0,<6.0
+deepface>=0.0.89
+tf-keras
+Pillow>=10.0
+numpy
+opencv-python-headless
+whitenoise>=6.0
+gunicorn
