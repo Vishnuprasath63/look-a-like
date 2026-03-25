@@ -6,11 +6,33 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
+def get_list_env(name, default=''):
+    return [item.strip() for item in os.environ.get(name, default).split(',') if item.strip()]
+
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-x7!k3m$r@q9z#f2&w5^t8n+p1j6c4v0y')
 
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*'] if DEBUG else get_list_env('ALLOWED_HOSTS', 'localhost,127.0.0.1')
+
+# CSRF checks require full origins including scheme.
+CSRF_TRUSTED_ORIGINS = get_list_env('CSRF_TRUSTED_ORIGINS')
+if not CSRF_TRUSTED_ORIGINS:
+    if DEBUG:
+        CSRF_TRUSTED_ORIGINS = [
+            'http://localhost',
+            'http://127.0.0.1',
+        ]
+    else:
+        CSRF_TRUSTED_ORIGINS = [
+            f'https://{host}' for host in ALLOWED_HOSTS
+            if host not in {'localhost', '127.0.0.1', '*'}
+        ]
+
+# Trust HTTPS information from reverse proxies on hosted platforms.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -32,6 +54,9 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# CSRF settings for production
+CSRF_TRUSTED_ORIGINS = ['.up.railway.app'] if not DEBUG else []
 
 ROOT_URLCONF = 'lookalike.urls'
 
